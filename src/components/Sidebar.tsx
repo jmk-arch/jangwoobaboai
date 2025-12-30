@@ -1,4 +1,4 @@
-import { PlusCircle, MessageCircle, Trash2, Edit2 } from 'lucide-react';
+import { Plus, MessageSquare, Trash2, Pencil } from "lucide-react";
 
 interface SidebarProps {
   conversations: Array<{ id: string; title: string }>;
@@ -13,92 +13,121 @@ interface SidebarProps {
   handleUpdateChatTitle: (id: string, title: string) => void;
 }
 
-export const Sidebar = ({ 
-  conversations, 
-  currentConversationId, 
-  handleNewChat, 
-  setCurrentConversationId, 
-  handleDeleteChat, 
-  editingChatId, 
-  setEditingChatId, 
-  editingTitle, 
-  setEditingTitle, 
-  handleUpdateChatTitle 
-}: SidebarProps) => (
-  <div className="flex flex-col w-64 bg-gray-800 border-r border-gray-700">
-    <div className="p-4 border-b border-gray-700">
-      <button
-        onClick={handleNewChat}
-        className="flex items-center justify-center w-full gap-2 px-3 py-2 text-sm font-medium text-white rounded-lg bg-gradient-to-r from-orange-500 to-red-600 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-orange-500"
-      >
-        <PlusCircle className="w-4 h-4" />
-        New Chat
-      </button>
-    </div>
+export const Sidebar = ({
+  conversations,
+  currentConversationId,
+  handleNewChat,
+  setCurrentConversationId,
+  handleDeleteChat,
+  editingChatId,
+  setEditingChatId,
+  editingTitle,
+  setEditingTitle,
+  handleUpdateChatTitle,
+}: SidebarProps) => {
+  const commitEdit = (id: string) => {
+    const next = editingTitle.trim();
+    if (next) handleUpdateChatTitle(id, next);
+    setEditingChatId(null);
+    setEditingTitle("");
+  };
 
-    {/* Chat List */}
-    <div className="flex-1 overflow-y-auto">
-      {conversations.map((chat) => (
-        <div
-          key={chat.id}
-          className={`group flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-700/50 ${
-            chat.id === currentConversationId ? 'bg-gray-700/50' : ''
-          }`}
-          onClick={() => setCurrentConversationId(chat.id)}
+  const cancelEdit = () => {
+    setEditingChatId(null);
+    setEditingTitle("");
+  };
+
+  return (
+    <aside className="flex h-full w-64 flex-col border-r border-gray-200 bg-gray-50">
+      {/* Top */}
+      <div className="p-3">
+        <button
+          onClick={handleNewChat}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900 shadow-sm hover:bg-gray-100 active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-gray-300"
         >
-          <MessageCircle className="w-4 h-4 text-gray-400" />
-          {editingChatId === chat.id ? (
-            <input
-              type="text"
-              value={editingTitle}
-              onChange={(e) => setEditingTitle(e.target.value)}
-              onFocus={(e) => e.target.select()}
-              onBlur={() => {
-                if (editingTitle.trim()) {
-                  handleUpdateChatTitle(chat.id, editingTitle)
-                }
-                setEditingChatId(null)
-                setEditingTitle('')
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && editingTitle.trim()) {
-                  handleUpdateChatTitle(chat.id, editingTitle)
-                } else if (e.key === 'Escape') {
-                  setEditingChatId(null)
-                  setEditingTitle('')
-                }
-              }}
-              className="flex-1 text-sm text-white bg-transparent focus:outline-none"
-              autoFocus
-            />
-          ) : (
-            <span className="flex-1 text-sm text-gray-300 truncate">
-              {chat.title}
-            </span>
-          )}
-          <div className="items-center hidden gap-1 group-hover:flex">
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                setEditingChatId(chat.id)
-                setEditingTitle(chat.title)
-              }}
-              className="p-1 text-gray-400 hover:text-white"
-            >
-              <Edit2 className="w-3 h-3" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                handleDeleteChat(chat.id)
-              }}
-              className="p-1 text-gray-400 hover:text-red-500"
-            >
-              <Trash2 className="w-3 h-3" />
-            </button>
-          </div>
+          <Plus className="h-4 w-4" />
+          New chat
+        </button>
+      </div>
+
+      {/* List */}
+      <div className="flex-1 overflow-y-auto px-2 pb-3">
+        <div className="space-y-1">
+          {conversations.map((chat) => {
+            const active = chat.id === currentConversationId;
+            const editing = editingChatId === chat.id;
+
+            return (
+              <div
+                key={chat.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => setCurrentConversationId(chat.id)}
+                className={[
+                  "group flex items-center gap-2 rounded-lg px-2 py-2",
+                  "cursor-pointer select-none",
+                  active ? "bg-gray-200/70" : "hover:bg-gray-200/50",
+                ].join(" ")}
+              >
+                <MessageSquare className="h-4 w-4 text-gray-500" />
+
+                {editing ? (
+                  <input
+                    type="text"
+                    value={editingTitle}
+                    onChange={(e) => setEditingTitle(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onBlur={() => commitEdit(chat.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") commitEdit(chat.id);
+                      if (e.key === "Escape") cancelEdit();
+                    }}
+                    className="min-w-0 flex-1 rounded-md bg-white/70 px-2 py-1 text-sm text-gray-900 outline-none ring-1 ring-gray-200 focus:ring-2 focus:ring-gray-300"
+                    autoFocus
+                  />
+                ) : (
+                  <span className="min-w-0 flex-1 truncate text-sm text-gray-800">
+                    {chat.title || "New chat"}
+                  </span>
+                )}
+
+                {/* Actions (hover only) */}
+                <div className="ml-auto hidden items-center gap-1 group-hover:flex">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingChatId(chat.id);
+                      setEditingTitle(chat.title);
+                    }}
+                    className="rounded-md p-1 text-gray-500 hover:bg-white hover:text-gray-900"
+                    aria-label="Rename"
+                    title="Rename"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteChat(chat.id);
+                    }}
+                    className="rounded-md p-1 text-gray-500 hover:bg-white hover:text-red-600"
+                    aria-label="Delete"
+                    title="Delete"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
-      ))}
-    </div>
-  </div>
-); 
+      </div>
+
+      {/* Bottom subtle footer (optional) */}
+      <div className="border-t border-gray-200 p-3 text-xs text-gray-500">
+        {conversations.length} chats
+      </div>
+    </aside>
+  );
+};
