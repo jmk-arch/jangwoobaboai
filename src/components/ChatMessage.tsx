@@ -9,36 +9,48 @@ interface ChatMessageProps {
   isStreaming?: boolean
 }
 
-export const ChatMessage = ({ message, isStreaming = false }: ChatMessageProps) => (
-  <div
-    className={`py-6 streaming-message ${
-      message.role === 'assistant'
-        ? 'bg-gradient-to-r from-orange-500/5 to-red-600/5'
-        : 'bg-transparent'
-    }`}
-  >
-    <div className="flex items-start w-full max-w-3xl gap-4 mx-auto">
-      {message.role === 'assistant' ? (
-        <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 ml-4 text-sm font-medium text-white rounded-lg bg-gradient-to-r from-orange-500 to-red-600">
-          AI
-        </div>
-      ) : (
-        <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 text-sm font-medium text-white bg-gray-700 rounded-lg">
-          Y
-        </div>
-      )}
-      <div className={`flex-1 min-w-0 mr-4 ${isStreaming ? 'streaming-cursor' : ''}`}>
-        <ReactMarkdown
-          className="prose dark:prose-invert max-w-none"
-          rehypePlugins={[
-            rehypeRaw,
-            rehypeSanitize,
-            rehypeHighlight,
-          ]}
+export const ChatMessage = ({ message, isStreaming = false }: ChatMessageProps) => {
+  const isAssistant = message.role === 'assistant'
+
+  return (
+    <div className="w-full py-4 px-4"> {/* 메시지 간격 */}
+      <div className="flex w-full max-w-4xl mx-auto gap-4">
+        {/* 아바타 */}
+        {isAssistant ? (
+          <div className="flex-shrink-0 w-8 h-8 rounded-md bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-semibold text-sm">
+            AI
+          </div>
+        ) : (
+          <div className="flex-shrink-0 w-8 h-8 rounded-md bg-gray-600 flex items-center justify-center text-white font-semibold text-sm">
+            U
+          </div>
+        )}
+
+        {/* 메시지 버블 */}
+        <div
+          className={`flex-1 min-w-0 max-w-full ${
+            isAssistant ? 'pr-24' : 'pl-24 flex justify-end'
+          }`}
         >
-          {message.content}
-        </ReactMarkdown>
+          <div
+            className={`inline-block px-5 py-4 rounded-3xl text-base leading-relaxed ${
+              isAssistant
+                ? 'bg-[#444654] text-white rounded-tl-none'
+                : 'bg-[#10a37f] text-white rounded-tr-none'
+            } ${isStreaming ? 'streaming-cursor' : ''}`}
+          >
+            <ReactMarkdown
+              className="prose dark:prose-invert max-w-none prose-pre:bg-transparent prose-pre:p-0"
+              rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
+            >
+              {message.content}
+            </ReactMarkdown>
+          </div>
+        </div>
+
+        {/* 빈 공간 (반대쪽 아바타 자리) */}
+        {!isAssistant && <div className="w-8 flex-shrink-0" />}
       </div>
     </div>
-  </div>
-); 
+  )
+}
